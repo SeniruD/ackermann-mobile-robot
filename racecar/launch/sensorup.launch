@@ -1,0 +1,10 @@
+<launch>
+
+  <!--Launching racecar controlling -->
+  <include file="$(find racecar)/launch/teleop.launch"/>
+<!--Launching racecar controlling -->
+
+  <include file="$(find rplidar_ros)/launch/rplidar_a2m12.launch"/>
+  <include file="$(find zed_wrapper)/launch/zed2.launch"/>
+
+</launch>
