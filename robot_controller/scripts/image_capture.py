@@ -54,22 +54,26 @@ def depth_image_callback(ros_image):
             normalized_depth_image = np.zeros_like(cv_depth_image)
         
         # Display the normalized depth image
-        cv2.imshow("Normalized Depth Image", normalized_depth_image)
+        # cv2.imshow("Normalized Depth Image", normalized_depth_image)
         
         # Display the normalized depth image
         # cv2.imshow("Normalized Depth Image", normalized_depth_image)
         # rospy.loginfo("depth image min: %f, max: %f", normalized_depth_image.min(), normalized_depth_image.max())
      
-        # resivve the depth image to 256x256
+        # resize the depth image to 256x256
         (h, w) = normalized_depth_image.shape
         y = (w-h)//2
         depth_image = normalized_depth_image[:, y:y+h]
         depth_image = cv2.resize(depth_image,(256,256))
-        depth_image = torch.tensor([depth_image], device='cuda:0')
         rospy.loginfo(depth_image.shape)
-        
-        cv2.imshow("cropped depth window", depth_image)
-        rospy.loginfo(depth_image)
+        # Convert NumPy array to PyTorch tensor
+        depth_image_tensor = torch.tensor([depth_image], device='cuda:0')
+
+        # Display the normalized depth image
+        cv2.imshow("Cropped Depth Image", depth_image)
+
+        # cv2.imshow("cropped depth window", depth_image)
+        rospy.loginfo(depth_image_tensor)
         cv2.waitKey(0) 
         cv2.destropAllWindows()
     except Exception as e:
