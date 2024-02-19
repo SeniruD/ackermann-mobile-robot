@@ -9,21 +9,23 @@ import cv2
 import numpy as np
 import torch
 
-def rgb_image_callback( data): 
+def rgb_image_callback(zed2_rgb_image): 
     rospy.loginfo("RGB image recieved")
     bridge = CvBridge()
     try:
-        cv_rgb_image = bridge.imgmsg_to_cv2(data, "bgr8")
-        cv2.imshow("rgb image window", cv_rgb_image)
+        cv_rgb_image = bridge.imgmsg_to_cv2(zed2_rgb_image, "bgr8")
+        # cv2.imshow("rgb image window", cv_rgb_image)
             
         (h, w, channels) = cv_rgb_image.shape
         y = (w-h)//2
-        rospy.loginfo("rgb image size: %d x %d", w, h)
-        rospy.loginfo(cv_rgb_image)
+        # rospy.loginfo("rgb image size: %d x %d", w, h)
+        # rospy.loginfo(cv_rgb_image)
         rgb_image = cv_rgb_image[:, y:y+h]
         rgb_image = cv2.resize(rgb_image,(224,224))
-        rospy.loginfo(rgb_image.shape)
-        
+        # rospy.loginfo(rgb_image.shape)
+        rgb_image_tensor = torch.tensor([rgb_image], device='cuda:0')
+        rospy.loginfo(rgb_image_tensor)
+
         cv2.imshow("cropped rgb window", rgb_image)
         cv2.waitKey(0) 
         cv2.destropAllWindows()
@@ -34,11 +36,11 @@ def rgb_image_callback( data):
 
     rgb_image_sub.unregister()
 
-def depth_image_callback(ros_image): 
+def depth_image_callback(zed2_depth_image): 
     rospy.loginfo("Depth image recieved")
     bridge = CvBridge()
     try:
-        cv_depth_image = bridge.imgmsg_to_cv2(ros_image, "32FC1")
+        cv_depth_image = bridge.imgmsg_to_cv2(zed2_depth_image, "32FC1")
 
         # Replace inf, -inf, and NaN values with 0
         cv_depth_image[np.isinf(cv_depth_image) | np.isnan(cv_depth_image)] = 0
@@ -55,9 +57,6 @@ def depth_image_callback(ros_image):
         
         # Display the normalized depth image
         # cv2.imshow("Normalized Depth Image", normalized_depth_image)
-        
-        # Display the normalized depth image
-        # cv2.imshow("Normalized Depth Image", normalized_depth_image)
         # rospy.loginfo("depth image min: %f, max: %f", normalized_depth_image.min(), normalized_depth_image.max())
      
         # resize the depth image to 256x256
@@ -65,7 +64,7 @@ def depth_image_callback(ros_image):
         y = (w-h)//2
         depth_image = normalized_depth_image[:, y:y+h]
         depth_image = cv2.resize(depth_image,(256,256))
-        rospy.loginfo(depth_image.shape)
+        # rospy.loginfo(depth_image.shape)
         # Convert NumPy array to PyTorch tensor
         depth_image_tensor = torch.tensor([depth_image], device='cuda:0')
 
@@ -85,7 +84,7 @@ def depth_image_callback(ros_image):
 
 def take_image():
     global rgb_image_sub, depth_image_sub
-    # rgb_image_sub = rospy.Subscriber('/zed2/zed_node/rgb/image_rect_color', Image, rgb_image_callback)
+    rgb_image_sub = rospy.Subscriber('/zed2/zed_node/rgb/image_rect_color', Image, rgb_image_callback)
     depth_image_sub = rospy.Subscriber('/zed2/zed_node/depth/depth_registered', Image, depth_image_callback)
 
     rospy.init_node('image_taker')
