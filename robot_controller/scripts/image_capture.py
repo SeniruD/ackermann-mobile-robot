@@ -8,6 +8,24 @@ from cv_bridge import CvBridge
 import cv2
 import numpy as np
 import torch
+from nltk.tokenize import word_tokenize
+
+
+class TextProcessor:
+    def __init__(self, vocab_file, device):
+        with open(vocab_file) as f:
+            self.vocab = f.read().split('", "')
+        self.device = device
+
+    def tokenize_text(self, text):
+        tokens = word_tokenize(text.lower())
+        return [self.vocab.index(token) for token in tokens if token in self.vocab] + [0] * (200 - len(tokens))
+
+    def process(self, text):
+        tokens = self.tokenize_text(text)
+        token_tensor = torch.tensor([tokens], device=self.device)
+        batch = {'rgb': [], 'depth': [], 'instruction': token_tensor}
+        return batch
 
 def rgb_image_callback(zed2_rgb_image): 
     rospy.loginfo("RGB image recieved")
@@ -23,12 +41,14 @@ def rgb_image_callback(zed2_rgb_image):
         rgb_image = cv_rgb_image[:, y:y+h]
         rgb_image = cv2.resize(rgb_image,(224,224))
         # rospy.loginfo(rgb_image.shape)
-        rgb_image_tensor = torch.tensor([rgb_image], device='cuda:0')
-        rospy.loginfo(rgb_image_tensor)
-
-        cv2.imshow("cropped rgb window", rgb_image)
-        cv2.waitKey(0) 
-        cv2.destropAllWindows()
+        # rgb_image_tensor = torch.tensor([rgb_image], device='cuda:0')
+        # rospy.loginfo(rgb_image_tensor)
+        
+        batch['rgb'] = rgb_image
+        save_batch(batch)
+        # cv2.imshow("cropped rgb window", rgb_image)
+        # cv2.waitKey(0) 
+        # cv2.destropAllWindows()
 
 
     except Exception as e:
@@ -50,6 +70,7 @@ def depth_image_callback(zed2_depth_image):
         # Normalize the depth image values
         min_val = np.min(cv_depth_image)
         max_val = np.max(cv_depth_image)
+
         if max_val != min_val:
             normalized_depth_image = (cv_depth_image - min_val) / (max_val - min_val)
         else:
@@ -66,32 +87,48 @@ def depth_image_callback(zed2_depth_image):
         depth_image = cv2.resize(depth_image,(256,256))
         # rospy.loginfo(depth_image.shape)
         # Convert NumPy array to PyTorch tensor
-        depth_image_tensor = torch.tensor([depth_image], device='cuda:0')
+        # depth_image_tensor = torch.tensor([depth_image], device='cuda:0')
 
         # Display the normalized depth image
-        cv2.imshow("Cropped Depth Image", depth_image)
+        # cv2.imshow("Cropped Depth Image", depth_image)
 
-        # cv2.imshow("cropped depth window", depth_image)
-        rospy.loginfo(depth_image_tensor)
-        cv2.waitKey(0) 
-        cv2.destropAllWindows()
+        # rospy.loginfo(depth_image_tensor)
+        batch['depth'] = depth_image
+        save_batch(batch)
+        # cv2.waitKey(0) 
+        # cv2.destropAllWindows()
     except Exception as e:
         rospy.logerr("Error processing image: %s", str(e))
     
     depth_image_sub.unregister()
 
 
+def save_batch(batch):
+    try:
+        with open('/home/senirud/catkin_ws1/src/robot_controller/data/batch_data.txt', 'w') as f:
+            f.write(str(batch))
+            rospy.loginfo("Batch data saved successfully")
+    except Exception as e:
+        rospy.logerr("Error saving batch data: %s", str(e))
 
 def take_image():
-    global rgb_image_sub, depth_image_sub
+
+    global rgb_image_sub, depth_image_sub, batch
+
+    processor = TextProcessor('/home/senirud/catkin_ws1/src/robot_controller/data/Vocab_file.txt', torch.device('cuda:0'))
+    text = "Follow the hallway until you see a gold colored trash can. Wait in front of the middle elevator."
+    batch = processor.process(text)
+    #print(batch)
     rgb_image_sub = rospy.Subscriber('/zed2/zed_node/rgb/image_rect_color', Image, rgb_image_callback)
-    depth_image_sub = rospy.Subscriber('/zed2/zed_node/depth/depth_registered', Image, depth_image_callback)
+    depth_image_sub = rospy.Subscriber('/zed2/zed_node/depth/depth_registered', Image, depth_image_callback)  
 
     rospy.init_node('image_taker')
-    rospy.spin()
+
+
 
 if __name__ == '__main__':
     try:
+        #rospy.init_node('image_taker')
         take_image()
     except rospy.ROSInterruptException:
         pass
