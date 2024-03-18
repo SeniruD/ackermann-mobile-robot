@@ -56,7 +56,7 @@ class MoverRobotServer:
     rospy.loginfo('Command Executed Successfully!')
 
 if __name__ == '__main__':
-  rospy.init_node('robot_action_server')
+  rospy.init_node('action_server')
   server = MoverRobotServer()
   rospy.spin()
 

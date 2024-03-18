@@ -1,5 +1,5 @@
 # Define the goal
-uint8 action_id  # Specify which dishwasher we want to use
+uint8 action_id 
 ---
 # Define the result
 bool action_completed

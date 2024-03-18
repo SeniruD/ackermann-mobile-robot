@@ -31,10 +31,18 @@ import torch
 from vlnce_baselines.common.TextTokenz import TextProcessor
 from vlnce_baselines.common.video_utils import generate_video_single, append_text_to_images
 
+# ------------------------- ROS ---------------------------
+    
+import roslib
+roslib.load_manifest('robot_controller')
+import rospy
+import actionlib
+
+from robot_controller.msg import MoveRobotAction, MoveRobotGoal
+
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=FutureWarning)
     import tensorflow as tf  # noqa: F401
-
 
 class BaseVLNCETrainer(BaseILTrainer):
     """A base trainer for VLN-CE imitation learning."""
@@ -229,10 +237,16 @@ class BaseVLNCETrainer(BaseILTrainer):
         if len(config.VIDEO_OPTION) > 0:
             os.makedirs(config.VIDEO_DIR, exist_ok=True)
         
+        rospy.init_node('vlnce')
+        rospy.loginfo("vlnce node started")
+        # rospy.spin()
+        client = actionlib.SimpleActionClient('move_robot', MoveRobotAction)
+        client.wait_for_server()
 
         stop = False
         dones = [False]
-        steps = 0 
+        steps = 0
+
         while not stop:
             #current_episodes = envs.current_episodes()  #episode_id, scene_id, start_pos, start_rotation, instruction with tokens
             with torch.no_grad():
@@ -245,39 +259,21 @@ class BaseVLNCETrainer(BaseILTrainer):
                 )
                 steps+=1
                 action_value = actions.item()
+
+                goal = MoveRobotGoal(action_id=action_value)
+                client.send_goal(goal)
+                client.wait_for_result()
+
                 _mapping = {0:'STOP', 1:'MOVE_FORWARD', 2:'TURN_LEFT', 3:'TURN_RIGHT'}
                 mapped_act = _mapping.get(action_value,'unknown')      
                 print(mapped_act)   
                 Cam.closeAllWindows()                     
                 #actions = tensor([[3]], device='cuda:0')
                 prev_actions.copy_(actions)
-              
-            # outputs = envs.step([a[0].item() for a in actions]) #take a step in the simulated environment
-            # observations, _, dones, infos = [     #observations = camera_input,instruction
-            #     list(x) for x in zip(*outputs)
-            
-            # time.sleep(5)
+
             if actions[0][0]==0:
                 dones = [True]
             stop=dones[0]
-            
-            # if len(config.VIDEO_OPTION) > 0:
-            #     video = []
-        
-            #     cpu_tensor_RGB = batch['rgb'].cpu()
-            #     src_rgb = np.float32(cpu_tensor_RGB)[0]
-            #     image_rgb = cv2.cvtColor(src_rgb, cv2.COLOR_BGR2RGB) 
-            #     video.append(image_rgb)
-                
-            #     cpu_tensor_depth = batch['depth'].cpu()
-            #     src_depth = np.float32((cpu_tensor_depth)[0].squeeze() * 255).astype(np.uint8)
-            #     src_depth = np.stack([src_depth for _ in range(3)], axis=2)
-            #     depth_map = cv2.resize(src_depth,dsize=(224, 224),interpolation=cv2.INTER_CUBIC)
-            #     video.append(depth_map)
-                
-            #     frame = np.concatenate(video,axis=1)
-            #     frame = append_text_to_images(frame, text)
-            #     rgb_frames[0].append(frame)
                 
             not_done_masks = torch.tensor(
                 [[0] if done else [1] for done in dones],
@@ -289,17 +285,3 @@ class BaseVLNCETrainer(BaseILTrainer):
             batch['rgb']=rgb
             batch['depth']=depth   
 
-            # if steps>=3:
-            #     break  
-            # batch = apply_obs_transforms_batch(batch, self.obs_transforms)
-            # print(batch)
-            
-        # if len(config.VIDEO_OPTION) > 0:
-        #     generate_video_single(
-        #         video_option=config.VIDEO_OPTION,
-        #         video_dir=config.VIDEO_DIR,
-        #         images=rgb_frames[0],
-        #         episode_id=10832,
-        #         checkpoint_idx=45,
-        #     )
-    
