@@ -20,7 +20,7 @@ def main():
     rospy.loginfo("vlnce node started")
 
     run_type = "single_inference"
-    exp_config = "/home/senirud/catkin_ws1/src/robot_controller/scripts/vlnce_baselines/config/r2r_baselines/test_set_inference.yaml"
+    exp_config = "vlnce_baselines/config/r2r_baselines/test_set_inference.yaml"
     opts = None
     config = get_config(exp_config, opts)
     logger.info(f"config: {config}")
