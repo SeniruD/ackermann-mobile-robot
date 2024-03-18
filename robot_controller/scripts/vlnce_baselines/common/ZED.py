@@ -132,7 +132,7 @@ class Cam():
   def newFrame(): 
     rgbArray,sharpenedArray,adjustedArray = Cam.getRGB()
     depthArray, corrected_depthArray = Cam.getDepth()
-    Cam.showImages(rgbArray, depthArray,corrected_depthArray,sharpenedArray,adjustedArray)  
+    # Cam.showImages(rgbArray, depthArray,corrected_depthArray,sharpenedArray,adjustedArray)  
     rgb = Cam.getRGB_t(rgbArray)
     adjusted = Cam.getRGB_t(adjustedArray)
     depth = Cam.getDepth_t(depthArray) 
