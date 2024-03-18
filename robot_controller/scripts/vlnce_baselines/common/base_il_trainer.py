@@ -270,10 +270,33 @@ class BaseVLNCETrainer(BaseILTrainer):
                 Cam.closeAllWindows()                     
                 #actions = tensor([[3]], device='cuda:0')
                 prev_actions.copy_(actions)
-
+              
+            # outputs = envs.step([a[0].item() for a in actions]) #take a step in the simulated environment
+            # observations, _, dones, infos = [     #observations = camera_input,instruction
+            #     list(x) for x in zip(*outputs)
+            
+            # time.sleep(5)
             if actions[0][0]==0:
                 dones = [True]
             stop=dones[0]
+            
+            # if len(config.VIDEO_OPTION) > 0:
+            #     video = []
+        
+            #     cpu_tensor_RGB = batch['rgb'].cpu()
+            #     src_rgb = np.float32(cpu_tensor_RGB)[0]
+            #     image_rgb = cv2.cvtColor(src_rgb, cv2.COLOR_BGR2RGB) 
+            #     video.append(image_rgb)
+                
+            #     cpu_tensor_depth = batch['depth'].cpu()
+            #     src_depth = np.float32((cpu_tensor_depth)[0].squeeze() * 255).astype(np.uint8)
+            #     src_depth = np.stack([src_depth for _ in range(3)], axis=2)
+            #     depth_map = cv2.resize(src_depth,dsize=(224, 224),interpolation=cv2.INTER_CUBIC)
+            #     video.append(depth_map)
+                
+            #     frame = np.concatenate(video,axis=1)
+            #     frame = append_text_to_images(frame, text)
+            #     rgb_frames[0].append(frame)
                 
             not_done_masks = torch.tensor(
                 [[0] if done else [1] for done in dones],
@@ -285,3 +308,17 @@ class BaseVLNCETrainer(BaseILTrainer):
             batch['rgb']=rgb
             batch['depth']=depth   
 
+            # if steps>=3:
+            #     break  
+            # batch = apply_obs_transforms_batch(batch, self.obs_transforms)
+            # print(batch)
+            
+        # if len(config.VIDEO_OPTION) > 0:
+        #     generate_video_single(
+        #         video_option=config.VIDEO_OPTION,
+        #         video_dir=config.VIDEO_DIR,
+        #         images=rgb_frames[0],
+        #         episode_id=10832,
+        #         checkpoint_idx=45,
+        #     )
+    
