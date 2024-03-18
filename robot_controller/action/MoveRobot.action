@@ -1,0 +1,8 @@
+# Define the goal
+uint8 action_id  # Specify which dishwasher we want to use
+---
+# Define the result
+bool action_completed
+---
+# Define a feedback message
+string action_status 

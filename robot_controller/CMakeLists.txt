@@ -12,6 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   rosbag
   message_generation
+  genmsg actionlib_msgs
+  actionlib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -57,21 +59,17 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  MOdelAction.srv
+  ModelAction.srv
 )
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+add_action_files(DIRECTORY action FILES MoveRobot.action)
+
+
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(DEPENDENCIES actionlib_msgs)
+
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -102,6 +100,8 @@ add_service_files(
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
+
+
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES robot_controller
