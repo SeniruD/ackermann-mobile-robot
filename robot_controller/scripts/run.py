@@ -12,45 +12,16 @@ from habitat_baselines.common.baseline_registry import baseline_registry
 import vlnce_baselines  # noqa: F401
 from vlnce_baselines.config.default import get_config
 
-# import rospy 
+import rospy 
 
 def main():
 
-    # rospy.init_node('vlnce')
-    # rospy.loginfo("vlnce node started")
+    rospy.init_node('vlnce')
+    rospy.loginfo("vlnce node started")
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--run-type",
-        choices=["train", "eval", "inference", "single_inference"],
-        required=True,
-        help="run type of the experiment (train, eval, inference, single_inference)",
-    )
-    parser.add_argument(
-        "--exp-config",
-        type=str,
-        required=True,
-        help="path to config yaml containing info about experiment",
-    )
-    parser.add_argument(
-        "opts",
-        default=None,
-        nargs=argparse.REMAINDER,
-        help="Modify config options from command line",
-    )
-
-    args = parser.parse_args()
-    run_exp(**vars(args))
-
-
-def run_exp(exp_config: str, run_type: str, opts=None) -> None:
-    """Runs experiment given mode and config
-
-    Args:
-        exp_config: path to config file.
-        run_type: "train" or "eval.
-        opts: list of strings of additional config options.
-    """
+    run_type = "single_inference"
+    exp_config = "/home/senirud/catkin_ws1/src/robot_controller/scripts/vlnce_baselines/config/r2r_baselines/test_set_inference.yaml"
+    opts = None
     config = get_config(exp_config, opts)
     logger.info(f"config: {config}")
     logdir = "/".join(config.LOG_FILE.split("/")[:-1])
