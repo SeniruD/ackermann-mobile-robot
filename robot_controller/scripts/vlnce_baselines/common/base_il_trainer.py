@@ -267,7 +267,7 @@ class BaseVLNCETrainer(BaseILTrainer):
                 _mapping = {0:'STOP', 1:'MOVE_FORWARD', 2:'TURN_LEFT', 3:'TURN_RIGHT'}
                 mapped_act = _mapping.get(action_value,'unknown')      
                 print(mapped_act)   
-                Cam.closeAllWindows()                     
+                # Cam.closeAllWindows()                     
                 #actions = tensor([[3]], device='cuda:0')
                 prev_actions.copy_(actions)
               
