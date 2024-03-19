@@ -259,14 +259,16 @@ class BaseVLNCETrainer(BaseILTrainer):
                 )
                 steps+=1
                 action_value = actions.item()
+                
+                _mapping = {0:'STOP', 1:'MOVE_FORWARD', 2:'TURN_LEFT', 3:'TURN_RIGHT'}
+                mapped_act = _mapping.get(action_value,'unknown')    
+                print(mapped_act)   
 
                 goal = MoveRobotGoal(action_id=action_value)
                 client.send_goal(goal)
                 client.wait_for_result()
 
-                _mapping = {0:'STOP', 1:'MOVE_FORWARD', 2:'TURN_LEFT', 3:'TURN_RIGHT'}
-                mapped_act = _mapping.get(action_value,'unknown')      
-                print(mapped_act)   
+  
                 # Cam.closeAllWindows()                     
                 #actions = tensor([[3]], device='cuda:0')
                 prev_actions.copy_(actions)
