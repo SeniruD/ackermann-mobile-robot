@@ -3,6 +3,10 @@
 import rospy
 from std_msgs.msg import String, Float64
 import rosbag
+import os
+# import datetime
+
+
 
 import roslib
 roslib.load_manifest('robot_controller')
@@ -22,23 +26,30 @@ class MoverRobotServer:
 
     if goal.action_id == 1: # move forward
         rospy.loginfo("Moving Forward")
-        self.play_bagfile("go_forward")
+        # self.play_bagfile("go_forward")
+        os.system('rosbag play --bags=/home/senirud/bag_files/go_forward.bag')
+
+
 
     elif goal.action_id == 2: # turn left
         rospy.loginfo("Turning Left")
-        self.play_bagfile("turn_left")
+        # self.play_bagfile("turn_left")
+        os.system('rosbag play --bags=/home/senirud/bag_files/turn_left.bag')
+
 
     
     elif goal.action_id == 3: # turn right
         rospy.loginfo("Turning Right")
-        self.play_bagfile("turn_right")
+        # self.play_bagfile("turn_right")
+        os.system('rosbag play --bags=/home/senirud/bag_files/turn_right.bag')
+
   
     elif goal.action_id == 0: # stop
         rospy.loginfo("Stopping the robot")
 
     else: 
         rospy.loginfo("Invalid Command!")
-         
+    rospy.loginfo('Command Executed Successfully!')     
     self.server.set_succeeded()
 
   def play_bagfile(self, command):
@@ -47,10 +58,12 @@ class MoverRobotServer:
     bag = rosbag.Bag(bag_path)
     rate = rospy.Rate(50) # 50hz
     for topic, msg, t in bag.read_messages():
+        # timestamp = datetime.datetime.fromtimestamp(t.to_sec())
+        # formatted_timestamp = timestamp.strftime('%b %d %Y %H:%M:%S.%f')[:-3]
         pub = rospy.Publisher(topic, type(msg), queue_size=10)
         pub.publish(msg)
         rate.sleep()
-        print('Published topic and message: ', topic, msg)
+        print('Published topic and message: ',t, topic, msg)
     bag.close()
     # print(f'{command} executed successfully!')
     rospy.loginfo('Command Executed Successfully!')
