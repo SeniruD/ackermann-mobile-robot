@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import signal
 import warnings
 import cv2
 from collections import defaultdict
@@ -207,10 +208,11 @@ class BaseVLNCETrainer(BaseILTrainer):
         self.policy.eval()
 
         processor = TextProcessor('data/Vocab_file.txt', torch.device('cuda:0'))
-        text = "Go straight through the hallway, stop at fire extinguisher."
+        text = "Go straight through the hallway until you see the blue chair."#forward and turn left by the fire extinguisher, then go straight through the hallway and stop near the blue door."
         #1."Exit the hallway, turn right and walk past the green sofa" 
         #2."Exit the room through the door. Go straight through the hallway and enter the next room. Walk towards the table and stop." #input('Give me an instruction:')#"Exit the room through the door. Go straight through the hallway and enter the next room. Walk towards the table and stop."
         #3.Exit the room through the door. Go straight through the hallway, stop at fire extinguisher.
+        #4: "Go straight through the hallway, then turn right and stop near the green sofa."
         depth,rgb = Cam.newFrame() 
         batch = processor.process(text) 
         batch['rgb']=rgb
@@ -246,6 +248,21 @@ class BaseVLNCETrainer(BaseILTrainer):
         stop = False
         dones = [False]
         steps = 0
+
+        def keyboardInterruptHandler(signal, frame):
+
+            print("---- KeyboardInterrupt : Generating video ----")
+            if len(config.VIDEO_OPTION) > 0:
+                generate_video_single(
+                    video_option=config.VIDEO_OPTION,
+                    video_dir=config.VIDEO_DIR,
+                    images=rgb_frames[0],
+                    episode_id=5,
+                    checkpoint_idx=45,
+                )
+            exit(0)
+
+        signal.signal(signal.SIGINT, keyboardInterruptHandler)
 
         while not stop:
             #current_episodes = envs.current_episodes()  #episode_id, scene_id, start_pos, start_rotation, instruction with tokens
@@ -320,7 +337,7 @@ class BaseVLNCETrainer(BaseILTrainer):
                 video_option=config.VIDEO_OPTION,
                 video_dir=config.VIDEO_DIR,
                 images=rgb_frames[0],
-                episode_id=2,
+                episode_id=5,
                 checkpoint_idx=45,
             )
     
